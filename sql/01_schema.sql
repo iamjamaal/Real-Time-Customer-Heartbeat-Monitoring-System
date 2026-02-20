@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS heartbeat_records (
     CONSTRAINT chk_heart_rate_valid
         CHECK (heart_rate BETWEEN 40 AND 180),
     CONSTRAINT chk_customer_id_format
-        CHECK (customer_id ~ '^CUST_[0-9]{4}$')
+        CHECK (customer_id ~ '^CUST_[0-9]{4}$'),
+    CONSTRAINT uniq_heartbeat_kafka
+        UNIQUE (kafka_partition, kafka_offset)
 );
 
 -- =============================================================
@@ -38,7 +40,9 @@ CREATE TABLE IF NOT EXISTS heartbeat_anomalies (
     raw_message          TEXT         NOT NULL,        -- Original JSON for audit
 
     CONSTRAINT chk_anomaly_type
-        CHECK (anomaly_type IN ('BRADYCARDIA', 'TACHYCARDIA', 'INVALID'))
+        CHECK (anomaly_type IN ('BRADYCARDIA', 'TACHYCARDIA', 'INVALID')),
+    CONSTRAINT uniq_anomaly_kafka
+        UNIQUE (kafka_partition, kafka_offset)
 );
 
 -- =============================================================
