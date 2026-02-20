@@ -66,7 +66,7 @@ into **PostgreSQL** — all visualised in a **Grafana** dashboard.
                                       +---------------------+
 ```
 
-See [`docs/data_flow_diagram.md`](docs/data_flow_diagram.md) for a full Mermaid
+See [`docs/data_flow_diagram.md`](docs/Data_Flow_Diagram.png) for a full Mermaid
 diagram (renderable in VS Code, GitHub, or [mermaid.live](https://mermaid.live))
 that can be exported to PNG/PDF.
 
