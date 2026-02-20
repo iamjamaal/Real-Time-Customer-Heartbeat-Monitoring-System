@@ -27,7 +27,13 @@ HEART_RATE_HIGH_NORMAL = 100
 # --- Data Generator Configuration ---
 CUSTOMER_POOL_SIZE = 20              # CUST_0001 to CUST_0020
 GENERATION_INTERVAL_SECONDS = 0.5   # One reading per 0.5s
-ANOMALY_INJECTION_RATE = 0.05       # 5% of readings are intentional outliers
+ANOMALY_INJECTION_RATE = float(os.getenv("ANOMALY_INJECTION_RATE", "0.05"))
+
+if not 0.0 <= ANOMALY_INJECTION_RATE <= 1.0:
+    raise ValueError(
+        f"ANOMALY_INJECTION_RATE must be between 0.0 and 1.0, "
+        f"got {ANOMALY_INJECTION_RATE}"
+    )
 
 # Normal distribution parameters for realistic BPM simulation
 NORMAL_BPM_MEAN = 75
