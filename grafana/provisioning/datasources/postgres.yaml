@@ -7,7 +7,7 @@ datasources:
     database: heartbeat_db
     user: heartbeat_user
     secureJsonData:
-      password: heartbeat_pass
+      password: ${POSTGRES_PASSWORD}
     jsonData:
       sslmode: disable
       postgresVersion: 1500
