@@ -20,8 +20,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Pre-generate stable customer pool — same IDs appear repeatedly,
-# simulating 20 real patients being continuously monitored.
-CUSTOMERS = [f"CUST_{i:04d}" for i in range(1, CUSTOMER_POOL_SIZE + 1)]
+# simulating 10,000 monitored individuals across the fleet.
+CUSTOMERS = [f"CUST_{i:05d}" for i in range(1, CUSTOMER_POOL_SIZE + 1)]
 
 
 def generate_heart_rate(inject_anomaly: bool = False) -> int:
