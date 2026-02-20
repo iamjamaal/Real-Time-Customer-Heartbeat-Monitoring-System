@@ -1,8 +1,6 @@
 services:
 
-  # ------------------------------------------------------------------
   # Zookeeper: Kafka's coordination and metadata service
-  # ------------------------------------------------------------------
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: heartbeat-zookeeper
@@ -20,12 +18,13 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # ------------------------------------------------------------------
+
+
+
   # Kafka Broker
   # Dual-listener setup:
   #   PLAINTEXT      = internal Docker container-to-container (kafka:9093)
   #   PLAINTEXT_HOST = external host machine access (localhost:9092)
-  # ------------------------------------------------------------------
   kafka:
     image: confluentinc/cp-kafka:7.6.1
     container_name: heartbeat-kafka
@@ -56,11 +55,12 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  # ------------------------------------------------------------------
+
+
+  
   # Kafka Topic Initialiser
   # One-shot service: creates the heartbeat-events topic and exits.
   # Runs after Kafka is healthy to ensure topic config is applied.
-  # ------------------------------------------------------------------
   kafka-init:
     image: confluentinc/cp-kafka:7.6.1
     container_name: heartbeat-kafka-init
@@ -80,10 +80,10 @@ services:
       "
     restart: "no"
 
-  # ------------------------------------------------------------------
+  
+
   # PostgreSQL Database
   # SQL files in ./sql/ are auto-executed on first container startup.
-  # ------------------------------------------------------------------
   postgres:
     image: postgres:15-alpine
     container_name: heartbeat-postgres
@@ -105,11 +105,11 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # ------------------------------------------------------------------
-  # Grafana Dashboard (Optional)
+  
+  
+  # Grafana Dashboard 
   # Start with: docker-compose --profile grafana up -d
   # Access at:  http://localhost:3000  (admin / admin)
-  # ------------------------------------------------------------------
   grafana:
     image: grafana/grafana:10.4.2
     container_name: heartbeat-grafana
