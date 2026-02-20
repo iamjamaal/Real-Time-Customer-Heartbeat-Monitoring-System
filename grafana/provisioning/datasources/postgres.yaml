@@ -2,6 +2,7 @@ apiVersion: 1
 
 datasources:
   - name: PostgreSQL-Heartbeat
+    uid: heartbeat-postgres
     type: postgres
     url: postgres:5432
     database: heartbeat_db
