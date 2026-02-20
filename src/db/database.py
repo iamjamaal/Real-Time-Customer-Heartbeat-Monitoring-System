@@ -47,6 +47,11 @@ INSERT_ANOMALY = """
     ON CONFLICT (kafka_partition, kafka_offset) DO NOTHING;
 """
 
+INSERT_METRIC = """
+    INSERT INTO pipeline_metrics (metric_name, metric_value, metric_unit)
+    VALUES (%(name)s, %(value)s, %(unit)s);
+"""
+
 
 def get_connection(retries: int = 10, delay: int = 3):
     """
@@ -90,3 +95,8 @@ def insert_valid_record(cursor, record: dict) -> None:
 def insert_anomaly_record(cursor, record: dict) -> None:
     """Insert an anomalous heartbeat reading into heartbeat_anomalies."""
     cursor.execute(INSERT_ANOMALY, record)
+
+
+def insert_pipeline_metric(cursor, name: str, value: float, unit: str) -> None:
+    """Record an operational metric in pipeline_metrics."""
+    cursor.execute(INSERT_METRIC, {"name": name, "value": value, "unit": unit})
