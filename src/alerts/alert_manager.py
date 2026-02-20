@@ -13,6 +13,8 @@ _SEVERITY = {
 }
 
 
+
+
 class AlertManager:
     """
     Centralised anomaly alerting for the Kafka consumer.
@@ -39,12 +41,13 @@ class AlertManager:
     that deliberately sends bad payloads).
     """
 
+
+
     def __init__(self):
         self._counts: dict[str, int] = {}
 
-    # ------------------------------------------------------------------
+
     # Public API
-    # ------------------------------------------------------------------
 
     def trigger_alert(
         self,
