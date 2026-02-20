@@ -11,19 +11,19 @@
 ```mermaid
 flowchart TD
     subgraph Generator["Data Generator (src/generator/data_generator.py)"]
-        G1["Customer pool\n10,000 IDs\nCUST_00001–CUST_10000"]
-        G2["generate_heart_rate()\nGaussian N(75, 15)\nclamped 40–180 bpm"]
-        G3["Anomaly injection\n5% of events\n→ Bradycardia 15–39 bpm\n→ Tachycardia 181–220 bpm"]
-        G4["generate_heartbeat_event()\n{customer_id, heart_rate, timestamp}"]
+        G1["Customer pool 10,000 IDs: CUST_00001–CUST_10000"]
+        G2["generate_heart_rate() Gaussian N(75, 15)  clamped 40–180 bpm"]
+        G3["Anomaly injection 5% of events → Bradycardia 15–39 bpm  Tachycardia 181–220 bpm"]
+        G4["generate_heartbeat_event() {customer_id, heart_rate, timestamp}"]
         G1 --> G4
         G2 --> G4
         G3 --> G4
     end
 
     subgraph Producer["Kafka Producer (src/kafka/producer.py)"]
-        P1["Serialise to JSON\ngzip compressed"]
-        P2["Partition key = customer_id\nguarantees per-customer ordering"]
-        P3["acks=all\nat-least-once delivery"]
+        P1["Serialise to JSON gzip compressed"]
+        P2["Partition key = customer_id guarantees per-customer ordering"]
+        P3["acks=all at-least-once delivery"]
         P1 --> P2 --> P3
     end
 
