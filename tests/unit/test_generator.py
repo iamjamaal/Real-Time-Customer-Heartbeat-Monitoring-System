@@ -4,6 +4,7 @@ from src.generator.data_generator import (
     generate_heartbeat_event,
     event_stream,
     CUSTOMERS,
+    INVALID_BPM_VALUES,
 )
 from src.config import (
     HEART_RATE_MIN_VALID,
@@ -54,6 +55,29 @@ class TestGenerateHeartRate:
     def test_returns_integer(self):
         assert isinstance(generate_heart_rate(), int)
         assert isinstance(generate_heart_rate(inject_anomaly=True), int)
+        assert isinstance(generate_heart_rate(inject_invalid=True), int)
+
+    def test_invalid_path_always_outside_valid_range(self):
+        """inject_invalid=True must always produce a value the consumer classifies as INVALID."""
+        for _ in range(100):
+            bpm = generate_heart_rate(inject_invalid=True)
+            assert bpm <= 0 or bpm > 300, (
+                f"Expected INVALID bpm (<=0 or >300), got {bpm}"
+            )
+
+    def test_invalid_path_values_come_from_expected_set(self):
+        """Invalid BPM values are drawn from the fixed INVALID_BPM_VALUES constant."""
+        for _ in range(100):
+            bpm = generate_heart_rate(inject_invalid=True)
+            assert bpm in INVALID_BPM_VALUES, (
+                f"Unexpected INVALID bpm {bpm}; expected one of {INVALID_BPM_VALUES}"
+            )
+
+    def test_invalid_takes_precedence_over_anomaly(self):
+        """inject_invalid=True overrides inject_anomaly=True."""
+        for _ in range(100):
+            bpm = generate_heart_rate(inject_anomaly=True, inject_invalid=True)
+            assert bpm in INVALID_BPM_VALUES
 
 
 class TestGenerateHeartbeatEvent:
