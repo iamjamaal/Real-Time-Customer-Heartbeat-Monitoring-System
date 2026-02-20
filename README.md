@@ -127,6 +127,18 @@ Every 100 messages, the consumer writes a snapshot of cumulative
 `pipeline_metrics`. These snapshots power the "Pipeline Throughput" time-series
 panel in Grafana.
 
+### INVALID sensor error injection
+
+A separate injection path (0.5% of events, `INVALID_INJECTION_RATE`) simulates
+hardware faults by producing physiologically impossible BPM values: `0`, `-1`,
+`301`, or `400`. The consumer classifies these as `INVALID` and routes them to
+`heartbeat_anomalies`. This makes all three anomaly types observable during a
+normal demo run without needing real faulty sensors.
+
+The two injection rates are independent and mutually exclusive per event:
+- If `inject_invalid` fires, the event is marked INVALID regardless of `ANOMALY_INJECTION_RATE`.
+- Otherwise, the event has a 5% chance of being a cardiac anomaly.
+
 ### Why the Gaussian distribution still produces anomalies
 
 Normal readings follow N(75, 15) **clamped** to [40, 180]. Without the 5%
@@ -329,6 +341,27 @@ The producer and consumer are independent processes. You can stop and restart
 either one without affecting the other — Kafka retains messages for 24 hours,
 and the consumer resumes from its last committed offset.
 
+### Scaling throughput with multiple producers
+
+To multiply event throughput, launch several producer processes in parallel
+using `multi_producer.py`. Each worker opens its own `KafkaProducer` connection
+and independently draws from the full 10,000-customer pool.
+
+```bash
+# Set the number of workers in .env, then:
+PRODUCER_WORKERS=4 python -m src.kafka.multi_producer
+```
+
+| Workers | Combined throughput | Avg reading interval per customer |
+|---|---|---|
+| 1 | ~2 events/sec | ~83 min |
+| 4 | ~8 events/sec | ~21 min |
+| 8 | ~16 events/sec | ~10 min |
+
+Because all workers use `customer_id` as the Kafka partition key, all readings
+for a given customer still land on the same partition, preserving per-customer
+ordering regardless of which worker process sent the message.
+
 ### Running from Docker (optional)
 
 Pre-built Dockerfiles are provided for fully containerised deployment:
@@ -410,8 +443,8 @@ LIMIT 50;
 pytest tests/unit/ -v
 ```
 
-43 tests covering:
-- Heart rate generation (normal and anomaly paths, boundary values)
+46 tests covering:
+- Heart rate generation (normal, anomaly, and INVALID paths, boundary values)
 - Customer pool size, format, uniqueness
 - Message validation (missing fields, bad types, empty IDs)
 - Heart rate classification (NORMAL, BRADYCARDIA, TACHYCARDIA, INVALID boundaries)
@@ -528,7 +561,8 @@ Real-Time Customer Heartbeat Monitoring System/
 │   │   └── data_generator.py       # Synthetic heartbeat event generator
 │   ├── kafka/
 │   │   ├── producer.py             # Kafka producer with retry and partitioning
-│   │   └── consumer.py             # Consumer: validate → classify → persist → alert
+│   │   ├── consumer.py             # Consumer: validate → classify → persist → alert
+│   │   └── multi_producer.py       # Multi-process producer for throughput scaling
 │   ├── db/
 │   │   └── database.py             # PostgreSQL helpers (connection, INSERT statements)
 │   └── alerts/
@@ -546,19 +580,23 @@ Real-Time Customer Heartbeat Monitoring System/
 │   └── provisioning/
 │       ├── datasources/
 │       │   └── postgres.yaml       # Auto-provisioned PostgreSQL datasource
-│       └── dashboards/
-│           ├── dashboard.yaml      # Dashboard provisioning config
-│           └── heartbeat_dashboard.json  # Pre-built 8-panel dashboard
+│       ├── dashboards/
+│       │   ├── dashboard.yaml      # Dashboard provisioning config
+│       │   └── heartbeat_dashboard.json  # Pre-built 13-panel dashboard
+│       └── alerting/
+│           └── heartbeat_alerts.yaml     # 5 auto-provisioned alert rules
 │
 ├── tests/
 │   ├── unit/                       # Fast tests — no Docker required
-│   │   ├── test_generator.py       # 19 tests for data generation
+│   │   ├── test_generator.py       # 22 tests for data generation
 │   │   └── test_validation.py      # 24 tests for validation + classification
 │   └── integration/                # Slow tests — requires running pipeline
 │       └── test_pipeline.py        # Schema, data integrity, throughput
 │
 └── docs/
     ├── data_flow_diagram.md        # Mermaid diagram (export to PNG/PDF)
+    ├── PROJECT_LOGIC.md            # Step-by-step explanation of system logic
+    ├── capture_screenshots.py      # Automation script to refresh screenshot docs
     └── screenshots/                # Terminal and database output captures
         ├── 01_docker_services_healthy.txt
         ├── 02_producer_terminal.txt
@@ -586,7 +624,7 @@ Real-Time Customer Heartbeat Monitoring System/
 | BPM distribution | `gauss(75, 15)` clamped to [40,180] | Realistic adult resting heart rate distribution |
 | Customer ID format | `CUST_XXXXX` (5-digit) | Supports pools up to 99,999; zero-padded for lexicographic sort compatibility |
 | Customer pool size | 10,000 | Reflects a realistic mid-size monitoring deployment; exercises Kafka's distributed strengths |
-| `INVALID` anomaly type | Schema reserved | For structurally malformed messages from external/real sensor feeds (not injected by the generator) |
+| `INVALID` anomaly type | Actively injected | 0.5% of generated events carry physiologically impossible BPM values (0, -1, 301, 400) to simulate sensor faults and exercise the full anomaly path |
 
 ---
 
