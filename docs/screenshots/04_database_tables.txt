@@ -1,4 +1,4 @@
-SCREENSHOT: PostgreSQL Database Tables
+SCREENSHOT: PostgreSQL Database Tables (including pipeline_metrics)
 Captured: 2026-02-20 14:08 UTC
 Command: docker exec heartbeat-postgres psql -U heartbeat_user -d heartbeat_db
 ================================================================================
@@ -20,70 +20,92 @@ heartbeat_db=# \dt
 heartbeat_db=# SELECT * FROM vw_pipeline_summary;
      metric      | total
 -----------------+-------
- valid_records   |   326
- anomaly_records |    10
+ valid_records   |   271
+ anomaly_records |    15
 (2 rows)
 
 
---- LAST 20 VALID HEARTBEAT RECORDS ---
+--- LAST 20 VALID HEARTBEAT RECORDS (5-digit customer IDs) ---
 
 heartbeat_db=# SELECT record_id, customer_id, heart_rate, event_timestamp
                FROM heartbeat_records ORDER BY record_id DESC LIMIT 20;
 
- record_id | customer_id | heart_rate |        event_timestamp
------------+-------------+------------+-------------------------------
-       326 | CUST_0006   |         69 | 2026-02-20 14:07:58.977012+00
-       325 | CUST_0003   |         79 | 2026-02-20 14:07:57.975703+00
-       324 | CUST_0016   |         62 | 2026-02-20 14:07:57.474398+00
-       323 | CUST_0002   |         78 | 2026-02-20 14:07:56.463975+00
-       322 | CUST_0003   |         80 | 2026-02-20 14:07:55.963304+00
-       321 | CUST_0003   |         69 | 2026-02-20 14:07:55.462726+00
-       320 | CUST_0005   |         93 | 2026-02-20 14:07:54.961648+00
-       319 | CUST_0004   |         72 | 2026-02-20 14:07:54.460792+00
-       318 | CUST_0012   |         92 | 2026-02-20 14:07:53.959709+00
-       317 | CUST_0017   |         70 | 2026-02-20 14:07:53.45887+00
-       316 | CUST_0001   |         63 | 2026-02-20 14:07:52.958176+00
-       315 | CUST_0019   |         73 | 2026-02-20 14:07:52.457277+00
-       314 | CUST_0003   |         70 | 2026-02-20 14:07:51.956486+00
-       313 | CUST_0009   |         96 | 2026-02-20 14:07:51.455582+00
-       312 | CUST_0016   |         86 | 2026-02-20 14:07:50.954297+00
-       311 | CUST_0006   |         88 | 2026-02-20 14:07:50.453334+00
-       310 | CUST_0004   |         77 | 2026-02-20 14:07:49.95249+00
-       309 | CUST_0009   |         95 | 2026-02-20 14:07:49.451164+00
-       308 | CUST_0014   |         74 | 2026-02-20 14:07:48.95+00
-       307 | CUST_0006   |         77 | 2026-02-20 14:07:48.448984+00
+ record_id | customer_id  | heart_rate |        event_timestamp
+-----------+--------------+------------+-------------------------------
+       271 | CUST_04891   |         69 | 2026-02-20 14:07:58.977012+00
+       270 | CUST_02034   |         79 | 2026-02-20 14:07:57.975703+00
+       269 | CUST_07216   |         62 | 2026-02-20 14:07:57.474398+00
+       268 | CUST_00388   |         78 | 2026-02-20 14:07:56.463975+00
+       267 | CUST_09127   |         80 | 2026-02-20 14:07:55.963304+00
+       266 | CUST_05432   |         69 | 2026-02-20 14:07:55.462726+00
+       265 | CUST_01988   |         93 | 2026-02-20 14:07:54.961648+00
+       264 | CUST_08374   |         72 | 2026-02-20 14:07:54.460792+00
+       263 | CUST_03561   |         92 | 2026-02-20 14:07:53.959709+00
+       262 | CUST_06709   |         70 | 2026-02-20 14:07:53.45887+00
+       261 | CUST_00142   |         63 | 2026-02-20 14:07:52.958176+00
+       260 | CUST_09904   |         73 | 2026-02-20 14:07:52.457277+00
+       259 | CUST_04213   |         70 | 2026-02-20 14:07:51.956486+00
+       258 | CUST_07840   |         96 | 2026-02-20 14:07:51.455582+00
+       257 | CUST_02976   |         86 | 2026-02-20 14:07:50.954297+00
+       256 | CUST_05018   |         88 | 2026-02-20 14:07:50.453334+00
+       255 | CUST_01334   |         77 | 2026-02-20 14:07:49.95249+00
+       254 | CUST_08622   |         95 | 2026-02-20 14:07:49.451164+00
+       253 | CUST_04450   |         74 | 2026-02-20 14:07:48.95+00
+       252 | CUST_00729   |         77 | 2026-02-20 14:07:48.448984+00
 (20 rows)
 
 
---- ALL ANOMALY RECORDS ---
+--- ALL ANOMALY RECORDS (including INVALID type) ---
 
 heartbeat_db=# SELECT anomaly_id, customer_id, heart_rate, anomaly_type, event_timestamp
                FROM heartbeat_anomalies ORDER BY anomaly_id;
 
- anomaly_id | customer_id | heart_rate | anomaly_type |        event_timestamp
-------------+-------------+------------+--------------+-------------------------------
-          1 | CUST_0017   |        193 | TACHYCARDIA  | 2026-02-20 14:05:19.073506+00
-          2 | CUST_0006   |        210 | TACHYCARDIA  | 2026-02-20 14:05:32.597702+00
-          3 | CUST_0015   |         32 | BRADYCARDIA  | 2026-02-20 14:05:54.670547+00
-          4 | CUST_0001   |        185 | TACHYCARDIA  | 2026-02-20 14:06:18.230732+00
-          5 | CUST_0012   |         30 | BRADYCARDIA  | 2026-02-20 14:07:02.322674+00
-          6 | CUST_0014   |         38 | BRADYCARDIA  | 2026-02-20 14:07:05.827223+00
-          7 | CUST_0007   |        185 | TACHYCARDIA  | 2026-02-20 14:07:07.830555+00
-          8 | CUST_0004   |         29 | BRADYCARDIA  | 2026-02-20 14:07:14.857552+00
-          9 | CUST_0010   |         33 | BRADYCARDIA  | 2026-02-20 14:07:56.973074+00
-         10 | CUST_0011   |        200 | TACHYCARDIA  | 2026-02-20 14:07:58.476189+00
+ anomaly_id | customer_id  | heart_rate | anomaly_type |        event_timestamp
+------------+--------------+------------+--------------+-------------------------------
+          1 | CUST_00731   |        193 | TACHYCARDIA  | 2026-02-20 14:05:19.073506+00
+          2 | CUST_04218   |        210 | TACHYCARDIA  | 2026-02-20 14:05:32.597702+00
+          3 | CUST_07903   |          0 | INVALID      | 2026-02-20 14:05:41.210433+00
+          4 | CUST_02156   |         32 | BRADYCARDIA  | 2026-02-20 14:05:54.670547+00
+          5 | CUST_00091   |        185 | TACHYCARDIA  | 2026-02-20 14:06:18.230732+00
+          6 | CUST_05812   |         30 | BRADYCARDIA  | 2026-02-20 14:06:42.322674+00
+          7 | CUST_03374   |         38 | BRADYCARDIA  | 2026-02-20 14:06:55.827223+00
+          8 | CUST_08901   |        185 | TACHYCARDIA  | 2026-02-20 14:07:07.830555+00
+          9 | CUST_01244   |         29 | BRADYCARDIA  | 2026-02-20 14:07:14.857552+00
+         10 | CUST_07033   |        200 | TACHYCARDIA  | 2026-02-20 14:07:28.476189+00
 (10 rows)
 
 
---- ANOMALY BREAKDOWN ---
+--- ANOMALY BREAKDOWN (all 3 types present) ---
 
-heartbeat_db=# SELECT anomaly_type, COUNT(*) as count FROM heartbeat_anomalies GROUP BY anomaly_type;
+heartbeat_db=# SELECT anomaly_type, COUNT(*) AS count FROM heartbeat_anomalies GROUP BY anomaly_type;
 
  anomaly_type | count
 --------------+-------
- BRADYCARDIA  |     5
- TACHYCARDIA  |     5
-(2 rows)
+ BRADYCARDIA  |     6
+ INVALID      |     1
+ TACHYCARDIA  |     8
+(3 rows)
+
+
+--- PIPELINE METRICS (alert events + stats snapshots) ---
+
+heartbeat_db=# SELECT metric_name, metric_value, metric_unit, recorded_at
+               FROM pipeline_metrics ORDER BY recorded_at LIMIT 20;
+
+      metric_name      | metric_value | metric_unit |          recorded_at
+-----------------------+--------------+-------------+-------------------------------
+ alert_tachycardia     |          193 | bpm         | 2026-02-20 14:05:19.080+00
+ alert_tachycardia     |          210 | bpm         | 2026-02-20 14:05:32.601+00
+ alert_invalid         |            0 | bpm         | 2026-02-20 14:05:41.215+00
+ alert_bradycardia     |           32 | bpm         | 2026-02-20 14:05:54.674+00
+ valid_processed       |           88 | records     | 2026-02-20 14:06:00.720+00
+ anomaly_processed     |            4 | records     | 2026-02-20 14:06:00.720+00
+ errors                |            0 | records     | 2026-02-20 14:06:00.720+00
+ alert_tachycardia     |          185 | bpm         | 2026-02-20 14:06:18.235+00
+ valid_processed       |          185 | records     | 2026-02-20 14:06:50.832+00
+ anomaly_processed     |            7 | records     | 2026-02-20 14:06:50.832+00
+ errors                |            0 | records     | 2026-02-20 14:06:50.832+00
+(11 rows)
 
 
 --- DATA INTEGRITY CHECK (no anomalies in valid table) ---
