@@ -1,6 +1,5 @@
 kafka-python==2.0.2
 psycopg2-binary==2.9.9
-Faker==22.0.0
 python-dotenv==1.0.0
 pytest==8.3.5
 pytest-mock==3.14.0
