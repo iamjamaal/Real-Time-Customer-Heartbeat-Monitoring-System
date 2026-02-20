@@ -71,8 +71,8 @@ class TestGenerateHeartbeatEvent:
             assert event["customer_id"].startswith("CUST_"), (
                 f"Unexpected customer_id format: {event['customer_id']}"
             )
-            # CUST_XXXX = 9 characters
-            assert len(event["customer_id"]) == 9
+            # CUST_XXXXX = 10 characters (5-digit zero-padded number)
+            assert len(event["customer_id"]) == 10
 
     def test_customer_id_in_pool(self):
         for _ in range(50):
@@ -103,16 +103,16 @@ class TestCustomerPool:
     def test_all_customers_have_correct_format(self):
         for cid in CUSTOMERS:
             assert cid.startswith("CUST_")
-            assert len(cid) == 9
+            assert len(cid) == 10  # CUST_XXXXX — 5-digit zero-padded
 
     def test_customers_are_unique(self):
         assert len(CUSTOMERS) == len(set(CUSTOMERS))
 
     def test_first_customer(self):
-        assert CUSTOMERS[0] == "CUST_0001"
+        assert CUSTOMERS[0] == "CUST_00001"
 
     def test_last_customer(self):
-        expected = f"CUST_{CUSTOMER_POOL_SIZE:04d}"
+        expected = f"CUST_{CUSTOMER_POOL_SIZE:05d}"
         assert CUSTOMERS[-1] == expected
 
 
