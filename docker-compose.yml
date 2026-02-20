@@ -1,0 +1,150 @@
+services:
+
+  # ------------------------------------------------------------------
+  # Zookeeper: Kafka's coordination and metadata service
+  # ------------------------------------------------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: heartbeat-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - heartbeat_network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # Kafka Broker
+  # Dual-listener setup:
+  #   PLAINTEXT      = internal Docker container-to-container (kafka:9093)
+  #   PLAINTEXT_HOST = external host machine access (localhost:9092)
+  # ------------------------------------------------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: heartbeat-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    networks:
+      - heartbeat_network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9093"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # Kafka Topic Initialiser
+  # One-shot service: creates the heartbeat-events topic and exits.
+  # Runs after Kafka is healthy to ensure topic config is applied.
+  # ------------------------------------------------------------------
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: heartbeat-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - heartbeat_network
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka to be fully ready...' &&
+        sleep 5 &&
+        echo 'Creating Kafka topic: heartbeat-events' &&
+        kafka-topics --bootstrap-server kafka:9093 \
+          --create --if-not-exists \
+          --topic heartbeat-events \
+          --partitions 3 \
+          --replication-factor 1 \
+          --config retention.ms=86400000 \
+          --config cleanup.policy=delete &&
+        echo '--- Topic created successfully ---' &&
+        kafka-topics --bootstrap-server kafka:9093 \
+          --describe --topic heartbeat-events
+      "
+    restart: "no"
+
+  # ------------------------------------------------------------------
+  # PostgreSQL Database
+  # SQL files in ./sql/ are auto-executed on first container startup.
+  # ------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: heartbeat-postgres
+    environment:
+      POSTGRES_DB: heartbeat_db
+      POSTGRES_USER: heartbeat_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-heartbeat_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    networks:
+      - heartbeat_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heartbeat_user -d heartbeat_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # Grafana Dashboard (Optional)
+  # Start with: docker-compose --profile grafana up -d
+  # Access at:  http://localhost:3000  (admin / admin)
+  # ------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: heartbeat-grafana
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - heartbeat_network
+    restart: unless-stopped
+    profiles:
+      - grafana
+
+networks:
+  heartbeat_network:
+    driver: bridge
+    name: heartbeat_network
+
+volumes:
+  postgres_data:
+    name: heartbeat_postgres_data
+  grafana_data:
+    name: heartbeat_grafana_data

@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL-Heartbeat
+    type: postgres
+    url: postgres:5432
+    database: heartbeat_db
+    user: heartbeat_user
+    secureJsonData:
+      password: heartbeat_pass
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1500
+      timescaledb: false
+    isDefault: true
+    editable: true
