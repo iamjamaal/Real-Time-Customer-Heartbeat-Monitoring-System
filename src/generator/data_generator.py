@@ -2,7 +2,6 @@ import random
 import time
 import logging
 from datetime import datetime, timezone
-from faker import Faker
 from src.config import (
     CUSTOMER_POOL_SIZE,
     GENERATION_INTERVAL_SECONDS,
@@ -19,8 +18,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
-
-fake = Faker()
 
 # Pre-generate stable customer pool — same IDs appear repeatedly,
 # simulating 20 real patients being continuously monitored.
