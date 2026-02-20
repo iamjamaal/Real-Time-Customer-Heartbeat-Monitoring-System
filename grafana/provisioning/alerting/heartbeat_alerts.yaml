@@ -1,0 +1,429 @@
+apiVersion: 1
+# Contact Points
+# Defines where alert notifications are sent
+contactPoints:
+  - orgId: 1
+    name: heartbeat-ops
+    receivers:
+      - uid: heartbeat-ops-email
+        type: email
+        settings:
+          addresses: ops@example.com
+          singleEmail: false
+        disableResolveMessage: false
+
+# ---------------------------------------------------------------------------
+# Notification Policy
+# Routes all alerts to heartbeat-ops.  Group by folder + alert name so each
+# distinct rule fires its own notification rather than being batched together.
+# ---------------------------------------------------------------------------
+policies:
+  - orgId: 1
+    receiver: heartbeat-ops
+    group_by: ["grafana_folder", "alertname"]
+    group_wait: 10s
+    group_interval: 5m
+    repeat_interval: 1h
+    routes:
+      - receiver: heartbeat-ops
+        matchers:
+          - severity =~ "critical|warning"
+
+# ---------------------------------------------------------------------------
+# Alert Rule Groups
+# Each rule: SQL query (A) → reduce to scalar (B) → threshold check (C)
+# Folder "Heartbeat" is created automatically by the dashboard provisioner.
+# ---------------------------------------------------------------------------
+groups:
+  - orgId: 1
+    name: Heartbeat Monitoring
+    folder: Heartbeat
+    interval: 1m
+    rules:
+
+    
+      # Rule 1 — INVALID readings detected
+      # Any physiologically impossible BPM value (≤0 or >300) is a data-quality
+      # issue that should be investigated immediately.
+      # Threshold: > 0 INVALID anomalies in the last 5 minutes
+      - uid: heartbeat-invalid-detected
+        title: "INVALID Readings Detected"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: heartbeat-postgres
+            model:
+              datasource:
+                type: grafana-postgresql-datasource
+                uid: heartbeat-postgres
+              format: table
+              rawQuery: true
+              rawSql: >-
+                SELECT COUNT(*) AS value
+                FROM heartbeat_anomalies
+                WHERE anomaly_type = 'INVALID'
+                  AND event_timestamp > NOW() - INTERVAL '5 minutes'
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: "0s"
+        annotations:
+          description: "{{ $values.B.Value }} INVALID BPM readings detected in the last 5 minutes. These are physiologically impossible values (≤0 or >300 bpm) indicating a sensor fault or data corruption."
+          summary: "INVALID heartbeat readings detected"
+        labels:
+          severity: warning
+          type: data_quality
+        isPaused: false
+
+  
+
+      # Rule 2 — Tachycardia burst
+      # Elevated count of TACHYCARDIA events suggests a cluster of at-risk
+      # customers or a data anomaly worth investigating.
+      # Threshold: > 5 TACHYCARDIA anomalies in the last 1 minute
+      - uid: heartbeat-tachycardia-burst
+        title: "Tachycardia Burst (>5 in 1 min)"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: heartbeat-postgres
+            model:
+              datasource:
+                type: grafana-postgresql-datasource
+                uid: heartbeat-postgres
+              format: table
+              rawQuery: true
+              rawSql: >-
+                SELECT COUNT(*) AS value
+                FROM heartbeat_anomalies
+                WHERE anomaly_type = 'TACHYCARDIA'
+                  AND event_timestamp > NOW() - INTERVAL '1 minute'
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: "1m"
+        annotations:
+          description: "{{ $values.B.Value }} tachycardia events detected in the last 1 minute (threshold: 5). Tachycardia = heart rate > 180 bpm."
+          summary: "Tachycardia burst detected"
+        labels:
+          severity: warning
+          type: tachycardia
+        isPaused: false
+
+
+
+
+      
+      # Rule 3 — Bradycardia burst
+      # Threshold: > 5 BRADYCARDIA anomalies in the last 1 minute
+      - uid: heartbeat-bradycardia-burst
+        title: "Bradycardia Burst (>5 in 1 min)"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: heartbeat-postgres
+            model:
+              datasource:
+                type: grafana-postgresql-datasource
+                uid: heartbeat-postgres
+              format: table
+              rawQuery: true
+              rawSql: >-
+                SELECT COUNT(*) AS value
+                FROM heartbeat_anomalies
+                WHERE anomaly_type = 'BRADYCARDIA'
+                  AND event_timestamp > NOW() - INTERVAL '1 minute'
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: "1m"
+        annotations:
+          description: "{{ $values.B.Value }} bradycardia events detected in the last 1 minute (threshold: 5). Bradycardia = heart rate < 40 bpm."
+          summary: "Bradycardia burst detected"
+        labels:
+          severity: warning
+          type: bradycardia
+        isPaused: false
+
+
+
+    
+      # Rule 4 — High overall anomaly rate
+      # If the total anomaly rate exceeds 2× the expected baseline it could
+      # indicate a widespread sensor fault or a real health emergency.
+      # Threshold: > 10 total anomalies in the last 1 minute
+      # (Expected baseline: ~6/min at 5% injection rate × 2 events/second × 60 seconds = 6 anomalies/min)
+      - uid: heartbeat-high-anomaly-rate
+        title: "High Anomaly Rate (>10 in 1 min)"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: heartbeat-postgres
+            model:
+              datasource:
+                type: grafana-postgresql-datasource
+                uid: heartbeat-postgres
+              format: table
+              rawQuery: true
+              rawSql: >-
+                SELECT COUNT(*) AS value
+                FROM heartbeat_anomalies
+                WHERE event_timestamp > NOW() - INTERVAL '1 minute'
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: "1m"
+        annotations:
+          description: "{{ $values.B.Value }} total anomalies detected in the last 1 minute (threshold: 10). Normal baseline is ~6/min."
+          summary: "Anomaly rate spike detected"
+        labels:
+          severity: critical
+          type: rate_spike
+        isPaused: false
+
+
+
+
+
+
+  
+      # Rule 5 — Pipeline stalled
+      # If no valid heartbeat record has been written in the last 2 minutes the
+      # consumer or producer has likely crashed.
+      # Threshold: last valid record older than 120 seconds
+      - uid: heartbeat-pipeline-stalled
+        title: "Pipeline Stalled (no data for 2 min)"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: heartbeat-postgres
+            model:
+              datasource:
+                type: grafana-postgresql-datasource
+                uid: heartbeat-postgres
+              format: table
+              rawQuery: true
+              rawSql: >-
+                SELECT EXTRACT(EPOCH FROM (NOW() - MAX(event_timestamp)))::int AS value
+                FROM heartbeat_records
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    params:
+                      - 120
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: "0s"
+        annotations:
+          description: "No valid heartbeat record has been written for {{ $values.B.Value }} seconds. The producer or consumer process may have crashed."
+          summary: "Heartbeat pipeline has stalled"
+        labels:
+          severity: critical
+          type: pipeline_health
+        isPaused: false
