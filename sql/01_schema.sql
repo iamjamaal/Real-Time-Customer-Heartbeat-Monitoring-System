@@ -1,12 +1,8 @@
--- =============================================================
+
 -- Real-Time Customer Heartbeat Monitoring System
 -- Database Schema
--- Auto-executed by PostgreSQL container on first startup
--- =============================================================
 
--- =============================================================
 -- MAIN TABLE: Valid heartbeat readings (40 <= bpm <= 180)
--- =============================================================
 CREATE TABLE IF NOT EXISTS heartbeat_records (
     record_id            BIGSERIAL    PRIMARY KEY,
     customer_id          VARCHAR(20)  NOT NULL,
@@ -25,9 +21,9 @@ CREATE TABLE IF NOT EXISTS heartbeat_records (
         UNIQUE (kafka_partition, kafka_offset)
 );
 
--- =============================================================
+
+
 -- ANOMALY TABLE: Out-of-range readings (audit trail)
--- =============================================================
 CREATE TABLE IF NOT EXISTS heartbeat_anomalies (
     anomaly_id           BIGSERIAL    PRIMARY KEY,
     customer_id          VARCHAR(20)  NOT NULL,
@@ -45,9 +41,9 @@ CREATE TABLE IF NOT EXISTS heartbeat_anomalies (
         UNIQUE (kafka_partition, kafka_offset)
 );
 
--- =============================================================
+
+
 -- PIPELINE METRICS
--- =============================================================
 CREATE TABLE IF NOT EXISTS pipeline_metrics (
     metric_id    SERIAL       PRIMARY KEY,
     metric_name  VARCHAR(100) NOT NULL,
@@ -56,12 +52,14 @@ CREATE TABLE IF NOT EXISTS pipeline_metrics (
     recorded_at  TIMESTAMPTZ  DEFAULT NOW()
 );
 
--- =============================================================
+
+
+
 -- INDEXES
 -- Primary query pattern: time-range queries (most recent first)
--- =============================================================
 
--- "Give me all readings in the last N minutes"
+
+-- "Return all readings in the  last N minutes"
 CREATE INDEX IF NOT EXISTS idx_heartbeat_event_ts
     ON heartbeat_records (event_timestamp DESC);
 
@@ -76,10 +74,10 @@ CREATE INDEX IF NOT EXISTS idx_anomaly_event_ts
 CREATE INDEX IF NOT EXISTS idx_anomaly_customer_type
     ON heartbeat_anomalies (customer_id, anomaly_type, event_timestamp DESC);
 
--- =============================================================
--- VIEWS
--- =============================================================
 
+
+
+-- VIEWS
 -- Rolling per-minute BPM summary per customer (Grafana data source)
 CREATE OR REPLACE VIEW vw_customer_bpm_summary AS
 SELECT
