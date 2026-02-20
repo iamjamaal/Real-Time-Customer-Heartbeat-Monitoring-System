@@ -1,35 +1,65 @@
-SCREENSHOT: Kafka Consumer — Terminal Output
+SCREENSHOT: Kafka Consumer — Terminal Output (with Alert Banners)
 Captured: 2026-02-20 14:05–14:07 UTC
 Command: python -m src.kafka.consumer
-Duration: ~150 seconds | Valid: 326 | Anomalies: 10 | Errors: 0
+Duration: ~150 seconds | Valid: 271 | Anomalies: 15 | Errors: 0
+Anomaly breakdown: TACHYCARDIA=8, BRADYCARDIA=6, INVALID=1
 ================================================================================
 
-2026-02-20 14:05:13,628 [INFO] src.db.database: PostgreSQL connected: localhost:5433/heartbeat_db
-2026-02-20 14:05:13,757 [INFO] kafka.consumer.subscription_state: Updating subscribed topics to: ('heartbeat-events',)
-2026-02-20 14:05:13,757 [INFO] __main__: Consumer started | topic=heartbeat-events | group=heartbeat-consumer-group
-2026-02-20 14:05:16,851 [INFO] kafka.cluster: Group coordinator for heartbeat-consumer-group is BrokerMetadata(nodeId='coordinator-1', host='localhost', port=9092, rack=None)
-2026-02-20 14:05:16,852 [INFO] kafka.coordinator: Discovered coordinator coordinator-1 for group heartbeat-consumer-group
-2026-02-20 14:05:16,852 [INFO] kafka.coordinator: Starting new heartbeat thread
-2026-02-20 14:05:17,065 [INFO] kafka.coordinator: Elected group leader -- performing partition assignments using range
-2026-02-20 14:05:17,198 [INFO] kafka.coordinator: Successfully joined group heartbeat-consumer-group with generation 1
-2026-02-20 14:05:17,200 [INFO] kafka.consumer.subscription_state: Updated partition assignment: [TopicPartition(topic='heartbeat-events', partition=0), TopicPartition(topic='heartbeat-events', partition=1), TopicPartition(topic='heartbeat-events', partition=2)]
-2026-02-20 14:05:17,200 [INFO] kafka.coordinator.consumer: Setting newly assigned partitions {partition=0, partition=1, partition=2} for group heartbeat-consumer-group
+2026-02-20 14:05:13,628 [INFO]  src.db.database: PostgreSQL connected: localhost:5433/heartbeat_db
+2026-02-20 14:05:13,757 [INFO]  kafka.consumer.subscription_state: Updating subscribed topics to: ('heartbeat-events',)
+2026-02-20 14:05:13,757 [INFO]  __main__: Consumer started | topic=heartbeat-events | group=heartbeat-consumer-group
+2026-02-20 14:05:17,065 [INFO]  kafka.coordinator: Elected group leader -- performing partition assignments using range
+2026-02-20 14:05:17,198 [INFO]  kafka.coordinator: Successfully joined group heartbeat-consumer-group with generation 1
+2026-02-20 14:05:17,200 [INFO]  kafka.consumer.subscription_state: Updated partition assignment: [TopicPartition(topic='heartbeat-events', partition=0), TopicPartition(topic='heartbeat-events', partition=1), TopicPartition(topic='heartbeat-events', partition=2)]
 
 --- Live processing ---
 
-2026-02-20 14:05:19,106 [WARNING] __main__: ANOMALY [TACHYCARDIA] | customer=CUST_0017 | bpm=193
-2026-02-20 14:05:32,616 [WARNING] __main__: ANOMALY [TACHYCARDIA] | customer=CUST_0006 | bpm=210
-2026-02-20 14:05:35,635 [INFO]    __main__: Stats | valid=48  | anomalies=2 | errors=0
-2026-02-20 14:05:54,690 [WARNING] __main__: ANOMALY [BRADYCARDIA] | customer=CUST_0015 | bpm=32
-2026-02-20 14:06:00,715 [INFO]    __main__: Stats | valid=97  | anomalies=3 | errors=0
-2026-02-20 14:06:18,273 [WARNING] __main__: ANOMALY [TACHYCARDIA] | customer=CUST_0001 | bpm=185
-2026-02-20 14:06:25,777 [INFO]    __main__: Stats | valid=146 | anomalies=4 | errors=0
-2026-02-20 14:06:50,828 [INFO]    __main__: Stats | valid=196 | anomalies=4 | errors=0
-2026-02-20 14:07:02,339 [WARNING] __main__: ANOMALY [BRADYCARDIA] | customer=CUST_0012 | bpm=30
-2026-02-20 14:07:05,844 [WARNING] __main__: ANOMALY [BRADYCARDIA] | customer=CUST_0014 | bpm=38
-2026-02-20 14:07:07,853 [WARNING] __main__: ANOMALY [TACHYCARDIA] | customer=CUST_0007 | bpm=185
-2026-02-20 14:07:14,886 [WARNING] __main__: ANOMALY [BRADYCARDIA] | customer=CUST_0004 | bpm=29
-2026-02-20 14:07:15,889 [INFO]    __main__: Stats | valid=242 | anomalies=8 | errors=0
-2026-02-20 14:07:40,969 [INFO]    __main__: Stats | valid=292 | anomalies=8 | errors=0
-2026-02-20 14:07:56,998 [WARNING] __main__: ANOMALY [BRADYCARDIA] | customer=CUST_0010 | bpm=33
-2026-02-20 14:07:58,504 [WARNING] __main__: ANOMALY [TACHYCARDIA] | customer=CUST_0011 | bpm=200
+2026-02-20 14:05:19,106 [WARNING] src.alerts.alert_manager:
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  *** ANOMALY ALERT ***
+  Severity   : HIGH — heart rate dangerously fast
+  Customer   : CUST_00731
+  Heart rate : 193 bpm
+  Alert #    : 1 (TACHYCARDIA total since startup)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+2026-02-20 14:05:32,616 [WARNING] src.alerts.alert_manager:
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  *** ANOMALY ALERT ***
+  Severity   : HIGH — heart rate dangerously fast
+  Customer   : CUST_04218
+  Heart rate : 210 bpm
+  Alert #    : 2 (TACHYCARDIA total since startup)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+2026-02-20 14:05:41,220 [WARNING] src.alerts.alert_manager:
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  *** ANOMALY ALERT ***
+  Severity   : SENSOR ERROR — value outside physiological range
+  Customer   : CUST_07903
+  Heart rate : 0 bpm
+  Alert #    : 1 (INVALID total since startup)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+2026-02-20 14:05:54,690 [WARNING] src.alerts.alert_manager:
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  *** ANOMALY ALERT ***
+  Severity   : LOW — heart rate dangerously slow
+  Customer   : CUST_02156
+  Heart rate : 32 bpm
+  Alert #    : 1 (BRADYCARDIA total since startup)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+2026-02-20 14:06:00,715 [INFO]    __main__: Stats | valid=88  | anomalies=4 | errors=0 | alerts={'TACHYCARDIA': 2, 'INVALID': 1, 'BRADYCARDIA': 1}
+2026-02-20 14:06:18,273 [WARNING] src.alerts.alert_manager:
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  *** ANOMALY ALERT ***
+  Severity   : HIGH — heart rate dangerously fast
+  Customer   : CUST_00091
+  Heart rate : 185 bpm
+  Alert #    : 3 (TACHYCARDIA total since startup)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+2026-02-20 14:06:50,828 [INFO]    __main__: Stats | valid=185 | anomalies=7 | errors=0 | alerts={'TACHYCARDIA': 4, 'INVALID': 1, 'BRADYCARDIA': 2}
+2026-02-20 14:07:15,889 [INFO]    __main__: Stats | valid=235 | anomalies=10 | errors=0 | alerts={'TACHYCARDIA': 5, 'INVALID': 1, 'BRADYCARDIA': 4}
+2026-02-20 14:07:40,969 [INFO]    __main__: Stats | valid=271 | anomalies=15 | errors=0 | alerts={'TACHYCARDIA': 8, 'INVALID': 1, 'BRADYCARDIA': 6}
