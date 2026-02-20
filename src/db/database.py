@@ -34,7 +34,7 @@ INSERT_VALID = """
     VALUES
         (%(customer_id)s, %(heart_rate)s, %(event_timestamp)s,
          %(kafka_topic)s, %(kafka_partition)s, %(kafka_offset)s)
-    ON CONFLICT DO NOTHING;
+    ON CONFLICT (kafka_partition, kafka_offset) DO NOTHING;
 """
 
 INSERT_ANOMALY = """
@@ -44,7 +44,7 @@ INSERT_ANOMALY = """
     VALUES
         (%(customer_id)s, %(heart_rate)s, %(anomaly_type)s, %(event_timestamp)s,
          %(kafka_partition)s, %(kafka_offset)s, %(raw_message)s)
-    ON CONFLICT DO NOTHING;
+    ON CONFLICT (kafka_partition, kafka_offset) DO NOTHING;
 """
 
 
