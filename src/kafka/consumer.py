@@ -87,7 +87,7 @@ def process_message(msg, cursor, stats: dict) -> None:
 
     is_valid, reason = validate_message(payload)
     if not is_valid:
-        logger.warning(
+        logger.error(
             f"Schema validation failed (partition={msg.partition}, "
             f"offset={msg.offset}): {reason}"
         )
@@ -174,7 +174,7 @@ def run_consumer():
                 conn.rollback()
                 # Kafka offset is NOT committed — message will be re-delivered
 
-            total = stats["valid"] + stats["anomalies"]
+            total = stats["valid"] + stats["anomalies"] + stats["errors"]
             if total > 0 and total % 50 == 0:
                 logger.info(
                     f"Stats | valid={stats['valid']} | "
