@@ -11,6 +11,7 @@ from src.config import (
     LOG_LEVEL,
 )
 from src.db.database import get_connection, insert_valid_record, insert_anomaly_record
+from src.alerts.alert_manager import AlertManager
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL),
@@ -64,17 +65,21 @@ def validate_message(payload: dict) -> tuple:
     return True, ""
 
 
-def process_message(msg, cursor, stats: dict) -> None:
+def process_message(msg, cursor, stats: dict, alert_manager: AlertManager) -> None:
     """
     Process a single Kafka message: deserialise → validate → classify → persist.
 
     The cursor is passed in (not created here) to allow the caller to manage
     the transaction boundary and commit only after a successful DB write.
+    When an anomaly is detected, alert_manager.trigger_alert() is called
+    within the same transaction so the alert metric is committed atomically
+    with the anomaly record.
 
     Args:
-        msg:    KafkaConsumer message object.
-        cursor: Active psycopg2 cursor.
-        stats:  Mutable dict tracking valid/anomaly/error counts.
+        msg:           KafkaConsumer message object.
+        cursor:        Active psycopg2 cursor.
+        stats:         Mutable dict tracking valid/anomaly/error counts.
+        alert_manager: AlertManager instance for anomaly alerting.
     """
     raw_json = msg.value.decode("utf-8")
 
@@ -120,10 +125,13 @@ def process_message(msg, cursor, stats: dict) -> None:
         }
         insert_anomaly_record(cursor, anomaly_record)
         stats["anomalies"] += 1
-        logger.warning(
-            f"ANOMALY [{classification}] | "
-            f"customer={payload['customer_id']} | bpm={bpm}"
+        # Fire alert: logs banner + writes to pipeline_metrics (same transaction)
+        alert_manager.trigger_alert(
+            payload["customer_id"], bpm, classification, cursor
         )
+
+
+STATS_FLUSH_INTERVAL = 100  # Write pipeline_metrics snapshot every N messages
 
 
 def run_consumer():
@@ -135,12 +143,21 @@ def run_consumer():
     semantics. The ON CONFLICT DO NOTHING clauses in the SQL handle
     duplicate inserts on message replay after a crash.
 
+    Alerting: anomalies trigger AlertManager.trigger_alert(), which
+    logs a prominent banner and writes to pipeline_metrics within the
+    same DB transaction as the anomaly record insert.
+
+    Pipeline metrics: every STATS_FLUSH_INTERVAL messages a stats
+    snapshot (valid / anomaly / error counts) is flushed to
+    pipeline_metrics so Grafana can display operational health history.
+
     Consumer settings:
       enable_auto_commit=False — offsets committed manually post-DB-write
       max_poll_records=50      — process up to 50 records per poll cycle
     """
     conn = get_connection()
     cursor = conn.cursor()
+    alert_manager = AlertManager()
 
     consumer = KafkaConsumer(
         KAFKA_TOPIC,
@@ -162,7 +179,7 @@ def run_consumer():
     try:
         for message in consumer:
             try:
-                process_message(message, cursor, stats)
+                process_message(message, cursor, stats, alert_manager)
                 conn.commit()       # DB transaction committed
                 consumer.commit()   # Kafka offset committed only after DB success
 
@@ -175,11 +192,25 @@ def run_consumer():
                 # Kafka offset is NOT committed — message will be re-delivered
 
             total = stats["valid"] + stats["anomalies"] + stats["errors"]
-            if total > 0 and total % 50 == 0:
+            if total > 0 and total % STATS_FLUSH_INTERVAL == 0:
+                # Persist a pipeline health snapshot to pipeline_metrics
+                try:
+                    alert_manager.flush_stats(
+                        cursor,
+                        stats["valid"],
+                        stats["anomalies"],
+                        stats["errors"],
+                    )
+                    conn.commit()
+                except Exception as e:
+                    logger.error(f"Failed to flush pipeline metrics: {e}")
+                    conn.rollback()
+
                 logger.info(
                     f"Stats | valid={stats['valid']} | "
                     f"anomalies={stats['anomalies']} | "
-                    f"errors={stats['errors']}"
+                    f"errors={stats['errors']} | "
+                    f"alerts={alert_manager.counts}"
                 )
 
     except KeyboardInterrupt:
