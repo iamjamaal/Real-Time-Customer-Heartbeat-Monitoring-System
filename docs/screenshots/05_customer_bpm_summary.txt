@@ -1,0 +1,33 @@
+SCREENSHOT: Customer BPM Summary View (vw_customer_bpm_summary)
+Captured: 2026-02-20 14:08 UTC
+Command: SELECT customer_id, avg_bpm, min_bpm, max_bpm, reading_count FROM vw_customer_bpm_summary ORDER BY avg_bpm DESC LIMIT 20;
+================================================================================
+
+ customer_id | avg_bpm | min_bpm | max_bpm | reading_count
+-------------+---------+---------+---------+---------------
+ CUST_0010   |    95.0 |      95 |      95 |             1
+ CUST_0007   |    92.0 |      88 |      96 |             2
+ CUST_0019   |    91.0 |      88 |      97 |             3
+ CUST_0001   |    86.7 |      71 |     108 |             3
+ CUST_0008   |    85.7 |      67 |     102 |             6
+ CUST_0013   |    82.5 |      67 |      91 |             6
+ CUST_0014   |    81.8 |      64 |     108 |             8
+ CUST_0012   |    81.0 |      70 |      92 |             2
+ CUST_0011   |    80.6 |      67 |      99 |             9
+ CUST_0003   |    79.6 |      61 |      95 |            10
+ CUST_0004   |    78.5 |      63 |      90 |             6
+ CUST_0002   |    78.5 |      50 |     116 |             4
+ CUST_0006   |    78.0 |      69 |      88 |             3
+ CUST_0012   |    77.8 |      70 |      87 |             4
+ CUST_0018   |    77.5 |      55 |     100 |             2
+ CUST_0009   |    77.4 |      48 |     103 |            10
+ CUST_0015   |    77.3 |      48 |     103 |             8
+ CUST_0004   |    76.7 |      73 |      83 |             3
+ CUST_0005   |    75.9 |      64 |      89 |             7
+ CUST_0020   |    75.8 |      69 |      90 |             6
+(20 rows)
+
+NOTE: avg_bpm values cluster around 75–85 bpm, reflecting the Gaussian
+      distribution centred at 75 bpm used in data_generator.py.
+      All values fall within the valid range [40, 180] — anomalies are
+      stored separately in heartbeat_anomalies.

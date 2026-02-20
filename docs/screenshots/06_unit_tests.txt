@@ -1,0 +1,56 @@
+SCREENSHOT: Unit Test Results — 43/43 Passed
+Captured: 2026-02-20 14:08 UTC
+Command: python -m pytest tests/unit/ -v
+================================================================================
+
+============================= test session starts =============================
+platform win32 -- Python 3.11.3, pytest-8.3.5, pluggy-1.6.0
+rootdir: C:\Users\NoahJamalNabila\Desktop\Real-Time Customer Heartbeat Monitoring System
+plugins: anyio-4.12.1, Faker-22.0.0, mock-3.14.0
+collecting ... collected 43 items
+
+tests/unit/test_generator.py::TestGenerateHeartRate::test_normal_path_always_in_valid_range PASSED [  2%]
+tests/unit/test_generator.py::TestGenerateHeartRate::test_anomaly_path_always_outside_valid_range PASSED [  4%]
+tests/unit/test_generator.py::TestGenerateHeartRate::test_anomaly_bradycardia_range PASSED [  6%]
+tests/unit/test_generator.py::TestGenerateHeartRate::test_anomaly_tachycardia_range PASSED [  9%]
+tests/unit/test_generator.py::TestGenerateHeartRate::test_returns_integer PASSED [ 11%]
+tests/unit/test_generator.py::TestGenerateHeartbeatEvent::test_event_has_required_fields PASSED [ 13%]
+tests/unit/test_generator.py::TestGenerateHeartbeatEvent::test_customer_id_format PASSED [ 16%]
+tests/unit/test_generator.py::TestGenerateHeartbeatEvent::test_customer_id_in_pool PASSED [ 18%]
+tests/unit/test_generator.py::TestGenerateHeartbeatEvent::test_timestamp_is_string PASSED [ 20%]
+tests/unit/test_generator.py::TestGenerateHeartbeatEvent::test_timestamp_contains_utc_offset PASSED [ 23%]
+tests/unit/test_generator.py::TestGenerateHeartbeatEvent::test_heart_rate_is_integer PASSED [ 25%]
+tests/unit/test_generator.py::TestCustomerPool::test_pool_size_matches_config PASSED [ 27%]
+tests/unit/test_generator.py::TestCustomerPool::test_all_customers_have_correct_format PASSED [ 30%]
+tests/unit/test_generator.py::TestCustomerPool::test_customers_are_unique PASSED [ 32%]
+tests/unit/test_generator.py::TestCustomerPool::test_first_customer PASSED [ 34%]
+tests/unit/test_generator.py::TestCustomerPool::test_last_customer PASSED [ 37%]
+tests/unit/test_generator.py::TestEventStream::test_finite_stream_yields_correct_count PASSED [ 39%]
+tests/unit/test_generator.py::TestEventStream::test_stream_yields_valid_event_dicts PASSED [ 41%]
+tests/unit/test_generator.py::TestEventStream::test_stream_events_have_integer_heart_rates PASSED [ 44%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_normal_lower_boundary PASSED [ 46%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_normal_upper_boundary PASSED [ 48%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_normal_midpoint PASSED [ 51%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_normal_low_end PASSED [ 53%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_normal_high_end PASSED [ 55%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_bradycardia_one_below_min PASSED [ 58%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_bradycardia_severe PASSED [ 60%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_bradycardia_extreme PASSED [ 62%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_tachycardia_one_above_max PASSED [ 65%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_tachycardia_extreme PASSED [ 67%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_invalid_zero PASSED [ 69%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_invalid_negative PASSED [ 72%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_invalid_above_physiological_max PASSED [ 74%]
+tests/unit/test_validation.py::TestClassifyHeartRate::test_invalid_far_above_max PASSED [ 76%]
+tests/unit/test_validation.py::TestValidateMessage::test_valid_message_passes PASSED [ 79%]
+tests/unit/test_validation.py::TestValidateMessage::test_missing_heart_rate PASSED [ 81%]
+tests/unit/test_validation.py::TestValidateMessage::test_missing_customer_id PASSED [ 83%]
+tests/unit/test_validation.py::TestValidateMessage::test_missing_timestamp PASSED [ 86%]
+tests/unit/test_validation.py::TestValidateMessage::test_missing_all_fields PASSED [ 88%]
+tests/unit/test_validation.py::TestValidateMessage::test_non_numeric_heart_rate_string PASSED [ 90%]
+tests/unit/test_validation.py::TestValidateMessage::test_non_numeric_heart_rate_none PASSED [ 93%]
+tests/unit/test_validation.py::TestValidateMessage::test_float_heart_rate_is_valid PASSED [ 95%]
+tests/unit/test_validation.py::TestValidateMessage::test_empty_customer_id PASSED [ 97%]
+tests/unit/test_validation.py::TestValidateMessage::test_extra_fields_allowed PASSED [100%]
+
+============================= 43 passed in 8.97s ==============================

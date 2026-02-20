@@ -1,0 +1,20 @@
+SCREENSHOT: Docker Services — All Healthy
+Captured: 2026-02-20 14:08 UTC
+Command: docker-compose ps
+================================================================================
+
+NAME                  IMAGE                             COMMAND                  SERVICE     CREATED          STATUS                    PORTS
+heartbeat-kafka       confluentinc/cp-kafka:7.6.1       "/etc/confluent/dock…"   kafka       12 minutes ago   Up 11 minutes (healthy)   0.0.0.0:9092-9093->9092-9093/tcp, [::]:9092-9093->9092-9093/tcp
+heartbeat-postgres    postgres:15-alpine                "docker-entrypoint.s…"   postgres    4 minutes ago    Up 4 minutes (healthy)    0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp
+heartbeat-zookeeper   confluentinc/cp-zookeeper:7.6.1   "/etc/confluent/dock…"   zookeeper   12 minutes ago   Up 12 minutes (healthy)   0.0.0.0:2181->2181/tcp, [::]:2181->2181/tcp
+
+NOTE: PostgreSQL mapped to host port 5433 (port 5432 occupied by a pre-existing
+      native PostgreSQL installation on this machine).
+
+Kafka topic: heartbeat-events — 3 partitions, replication-factor 1
+--------------------------------------------------------------------------------
+Topic: heartbeat-events    TopicId: wUejhRIIRtiwuVX3QkMiXA
+    PartitionCount: 3    ReplicationFactor: 1    Configs:
+    Partition: 0    Leader: 1    Replicas: 1    Isr: 1
+    Partition: 1    Leader: 1    Replicas: 1    Isr: 1
+    Partition: 2    Leader: 1    Replicas: 1    Isr: 1
