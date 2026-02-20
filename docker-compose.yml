@@ -69,21 +69,14 @@ services:
         condition: service_healthy
     networks:
       - heartbeat_network
-    command: >
+    command: |
       bash -c "
         echo 'Waiting for Kafka to be fully ready...' &&
         sleep 5 &&
         echo 'Creating Kafka topic: heartbeat-events' &&
-        kafka-topics --bootstrap-server kafka:9093 \
-          --create --if-not-exists \
-          --topic heartbeat-events \
-          --partitions 3 \
-          --replication-factor 1 \
-          --config retention.ms=86400000 \
-          --config cleanup.policy=delete &&
+        kafka-topics --bootstrap-server kafka:9093 --create --if-not-exists --topic heartbeat-events --partitions 3 --replication-factor 1 --config retention.ms=86400000 --config cleanup.policy=delete &&
         echo '--- Topic created successfully ---' &&
-        kafka-topics --bootstrap-server kafka:9093 \
-          --describe --topic heartbeat-events
+        kafka-topics --bootstrap-server kafka:9093 --describe --topic heartbeat-events
       "
     restart: "no"
 
@@ -99,7 +92,7 @@ services:
       POSTGRES_USER: heartbeat_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-heartbeat_pass}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./sql:/docker-entrypoint-initdb.d:ro
@@ -127,8 +120,9 @@ services:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:-admin}
       GF_INSTALL_PLUGINS: ""
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-heartbeat_pass}
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
