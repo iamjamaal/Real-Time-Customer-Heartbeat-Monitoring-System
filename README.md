@@ -101,13 +101,11 @@ alert through `AlertManager` (`src/alerts/alert_manager.py`).
    impossible to miss in a terminal or log aggregator:
 
    ```
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     *** ANOMALY ALERT ***
+       ANOMALY ALERT 
      Severity   : HIGH — heart rate dangerously fast
      Customer   : CUST_00042
      Heart rate : 197 bpm
      Alert #    : 3 (TACHYCARDIA total since startup)
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ```
 
 2. **Database persistence** — one row is inserted into `pipeline_metrics`
@@ -281,13 +279,11 @@ produce a full alert banner:
 
 ```
 [INFO]  Consumer started | topic=heartbeat-events | group=heartbeat-consumer-group
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  *** ANOMALY ALERT ***
+   ANOMALY ALERT 
   Severity   : HIGH — heart rate dangerously fast
   Customer   : CUST_00731
   Heart rate : 204 bpm
   Alert #    : 1 (TACHYCARDIA total since startup)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ```
 
 Every 100 messages a stats line summarises the pipeline:
