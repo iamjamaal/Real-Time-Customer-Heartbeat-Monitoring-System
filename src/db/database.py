@@ -25,7 +25,7 @@ DSN = {
     "password": POSTGRES_PASSWORD,
 }
 
-# --- SQL Statements ---
+#  SQL Statements 
 
 INSERT_VALID = """
     INSERT INTO heartbeat_records

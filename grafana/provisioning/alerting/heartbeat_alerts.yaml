@@ -12,11 +12,11 @@ contactPoints:
           singleEmail: false
         disableResolveMessage: false
 
-# ---------------------------------------------------------------------------
+
+
 # Notification Policy
 # Routes all alerts to heartbeat-ops.  Group by folder + alert name so each
 # distinct rule fires its own notification rather than being batched together.
-# ---------------------------------------------------------------------------
 policies:
   - orgId: 1
     receiver: heartbeat-ops
@@ -29,11 +29,12 @@ policies:
         matchers:
           - severity =~ "critical|warning"
 
-# ---------------------------------------------------------------------------
+
+
+
 # Alert Rule Groups
 # Each rule: SQL query (A) → reduce to scalar (B) → threshold check (C)
 # Folder "Heartbeat" is created automatically by the dashboard provisioner.
-# ---------------------------------------------------------------------------
 groups:
   - orgId: 1
     name: Heartbeat Monitoring
@@ -42,6 +43,7 @@ groups:
     rules:
 
     
+
       # Rule 1 — INVALID readings detected
       # Any physiologically impossible BPM value (≤0 or >300) is a data-quality
       # issue that should be investigated immediately.
@@ -118,6 +120,8 @@ groups:
         isPaused: false
 
   
+
+
 
       # Rule 2 — Tachycardia burst
       # Elevated count of TACHYCARDIA events suggests a cluster of at-risk

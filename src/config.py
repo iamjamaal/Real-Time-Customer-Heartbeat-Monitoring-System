@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- Kafka Configuration ---
+# Kafka Configuration 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "heartbeat-events")
 KAFKA_GROUP_ID = os.getenv("KAFKA_GROUP_ID", "heartbeat-consumer-group")
@@ -13,7 +13,7 @@ KAFKA_TOPIC_REPLICATION_FACTOR = 1  # Single broker in local dev
 
 
 
-# --- Heart Rate Thresholds ---
+# Heart Rate Thresholds 
 # Clinical basis:
 # < 40 bpm  = severe bradycardia (medical emergency)
 # 40-59     = low (athlete resting or early bradycardia)
@@ -28,7 +28,7 @@ HEART_RATE_HIGH_NORMAL = 100
 
 
 
-# --- Data Generator Configuration ---
+# Data Generator Configuration 
 CUSTOMER_POOL_SIZE = 10_000          # CUST_00001 to CUST_10000
 GENERATION_INTERVAL_SECONDS = 0.5   # One reading per 0.5s
 ANOMALY_INJECTION_RATE = float(os.getenv("ANOMALY_INJECTION_RATE", "0.05"))
@@ -51,7 +51,7 @@ for _rate_name, _rate_val in (
 NORMAL_BPM_MEAN = 75
 NORMAL_BPM_STD = 15
 
-# --- PostgreSQL Configuration ---
+# PostgreSQL Configuration 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 POSTGRES_DB = os.getenv("POSTGRES_DB", "heartbeat_db")
@@ -60,10 +60,10 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "heartbeat_pass")
 
 
 
-# --- Multi-Producer Configuration ---
+# Multi-Producer Configuration 
 # Number of independent producer processes launched by multi_producer.py.
 # Each process opens its own KafkaProducer connection, multiplying throughput.
 PRODUCER_WORKERS = int(os.getenv("PRODUCER_WORKERS", "1"))
 
-# --- Logging ---
+# Logging 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
