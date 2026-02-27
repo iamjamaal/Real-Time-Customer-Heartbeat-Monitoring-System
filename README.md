@@ -66,7 +66,7 @@ into **PostgreSQL** — all visualised in a **Grafana** dashboard.
                                       +---------------------+
 ```
 
-See [`docs/data_flow_diagram.md`](docs/Data_Flow_Diagram.png)
+![Data Flow Diagram](docs/Data_Flow_Diagram.png)
 
 ---
 
@@ -588,7 +588,7 @@ Real-Time Customer Heartbeat Monitoring System/
 │       └── test_pipeline.py        # Schema, data integrity, throughput
 │
 └── docs/
-    ├── data_flow_diagram.md        # Mermaid diagram (export to PNG/PDF)
+    ├── Data_Flow_Diagram.png       # System data flow diagram
     ├── PROJECT_LOGIC.md            # Step-by-step explanation of system logic
     ├── capture_screenshots.py      # Automation script to refresh screenshot docs
     └── screenshots/                # Terminal and database output captures
